@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--
+      PROJET : Piano Harmony Master - Stable Selection Reveal
+      VERSION : 1.3.2 - Harmonic Probability Edition
+      SECRET : Le bouton de test est caché (invisible) en bas à droite du piano.
+    -->
+    <meta charset="UTF-8">
+    <title>Piano Harmony Master - v1.3.2</title>
+    <style>
+        :root { --white: #fff; --black: #2c3e50; --highlight: #3498db; --error: #e74c3c; --success: #2ecc71; --root-color: #f1c40f; --target-view: #9b59b6; --shuffle: #e67e22; --reset: #c0392b; }
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 20px; box-sizing: border-box; }
+        #app-container { display: flex; flex-direction: column; align-items: center; transform-origin: center center; transition: transform 0.1s ease-out; }
+        #header-tools { width: 850px; display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .mode-selector { display: flex; gap: 5px; }
+        .mode-btn { cursor: pointer; padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.8em; background: #fff; font-weight: bold; }
+        .mode-btn.active { background: var(--highlight); color: white; border-color: var(--highlight); }
+        .mode-btn.shuffle-active { background: var(--shuffle) !important; color: white; border-color: var(--shuffle); }
+        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; }
+
+        #piano-wrapper { position: relative; margin-top: 10px; }
+        #piano { display: flex; background: #333; padding: 15px 10px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); user-select: none; width: 850px; height: 180px; box-sizing: border-box; justify-content: center; min-height: 180px; }
+
+        #ghost-trigger { position: absolute; bottom: 5px; right: 5px; width: 25px; height: 25px; cursor: help; opacity: 0; z-index: 100; transition: opacity 0.3s; background: rgba(231, 76, 60, 0.2); border-radius: 50%; }
+        #ghost-trigger:hover { opacity: 0.5; }
+
+        .key { cursor: pointer; border: 1px solid #bbb; position: relative; box-sizing: border-box; transition: background 0.1s; }
+        .white { width: 46px; height: 150px; background: var(--white); border-radius: 0 0 5px 5px; z-index: 1; }
+        .black { width: 30px; height: 95px; background: var(--black); margin-left: -15px; margin-right: -15px; z-index: 2; border-radius: 0 0 4px 4px; border: none; }
+        #question-box { background: white; padding: 15px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 850px; text-align: center; border-top: 4px solid var(--highlight); margin-bottom: 20px; box-sizing: border-box; }
+        #question { font-size: 1.4em; color: #2c3e50; font-weight: bold; min-height: 1.5em; }
+        #feedback { font-weight: bold; height: 1.2em; margin: 5px 0; font-size: 1.1em; }
+        #controls { display: grid; grid-template-columns: repeat(11, 1fr); gap: 8px; width: 850px; margin-bottom: 15px; }
+        .int-btn { padding: 12px 2px; border: none; border-radius: 4px; background: white; color: var(--black); cursor: pointer; font-weight: bold; border-bottom: 3px solid #bdc3c7; transition: 0.1s; font-size: 0.85em; }
+        .int-btn.selected { background: var(--highlight) !important; color: white !important; }
+        .int-btn.hide-selection { background: white !important; color: var(--black) !important; border-bottom: 3px solid #bdc3c7 !important; }
+        .int-btn.answer-highlight { background: var(--success) !important; color: white !important; border-bottom: none !important; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button.main-btn { padding: 12px 30px; font-size: 1.1em; font-weight: bold; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #action-btn { background: #2c3e50; }
+        #clear-btn { background: #95a5a6; }
+        #reset-btn { background: var(--reset); }
+        .correct { background: var(--success) !important; }
+        .wrong { background: var(--error) !important; }
+        .root-key { background: var(--root-color) !important; }
+        .target-view { background: var(--target-view) !important; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="header-tools">
+        <div style="font-size: 1.4em; font-weight: bold;">Piano Harmony Master</div>
+        <div class="mode-selector">
+            <button id="btnMode0" class="mode-btn" onclick="setMode(0)">Note</button>
+            <button id="btnMode2" class="mode-btn" onclick="setMode(2)">Root</button>
+            <button id="btnMode1" class="mode-btn" onclick="setMode(1)">Interval</button>
+            <button id="btnModeshuffle" class="mode-btn" onclick="setMode('shuffle')">🔀 Mix</button>
+        </div>
+        <select id="langSelect" onchange="changeLanguage(this.value)">
+            <option value="de">🇩🇪 DE</option>
+            <option value="en" selected>🇬🇧 EN</option>
+            <option value="es">🇪🇸 ES</option>
+            <option value="fr">🇫🇷 FR</option>
+            <option value="it">🇮🇹 IT</option>
+        </select>
+    </div>
+
+    <div id="piano-wrapper">
+        <div id="piano"></div>
+        <div id="ghost-trigger" onclick="runAutoTest()"></div>
+    </div>
+
+    <div id="question-box"><div id="question"></div><div id="feedback"></div></div>
+    <div id="controls"></div>
+
+    <div class="btn-group">
+        <button id="action-btn" class="main-btn" onclick="nextQuestion()">GO</button>
+        <button id="clear-btn" class="main-btn" onclick="clearSelection()">CLEAR</button>
+        <button id="reset-btn" class="main-btn" onclick="hardReset()">RESET ALL</button>
+    </div>
+</div>
+
+<script>
+    const BLACK_KEY_PATTERN = [1, 3, 6, 8, 10];
+
+    const ALL_INTERVALS_LIST = [
+        { name: "b2", value: 1 }, { name: "2", value: 2 },
+        { name: "#2", value: 3 }, { name: "b3", value: 3 },
+        { name: "3", value: 4 }, { name: "4", value: 5 },
+        { name: "#4", value: 6 }, { name: "b5", value: 6 },
+        { name: "5", value: 7 }, { name: "#5", value: 8 },
+        { name: "b6", value: 8 }, { name: "6", value: 9 },
+        { name: "b7", value: 10 }, { name: "7", value: 11 },
+        { name: "8", value: 12 }, { name: "b9", value: 13 },
+        { name: "9", value: 14 }, { name: "#9", value: 15 },
+        { name: "11", value: 17 }, { name: "#11", value: 18 },
+        { name: "b13", value: 20 }, { name: "13", value: 21 }
+    ];
+
+    const ALL_INTERVALS = {};
+    ALL_INTERVALS_LIST.forEach(i => ALL_INTERVALS[i.name] = i.value);
+
+    const i18n = {
+        en: { notes: ["C", ["C#", "Db"], "D", ["D#", "Eb"], "E", "F", ["F#", "Gb"], "G", ["G#", "Ab"], "A", ["A#", "Bb"], "B"], init: "Select intervals ↓", questNote: "Find the <strong>{int}</strong> of <strong>{root}</strong>", questRoot: "<strong>{target}</strong> is the <strong>{int}</strong> of which note?", questIdent: "What is the interval?", success: "✅ CORRECT!", error: "❌ TRY AGAIN", alert: "⚠️ Please select intervals!" },
+        fr: { notes: ["Do", ["Do#", "Réb"], "Ré", ["Ré#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], init: "Sélectionnez vos intervalles ↓", questNote: "Trouvez la <strong>{int}</strong> de <strong>{root}</strong>", questRoot: "<strong>{target}</strong> est la <strong>{int}</strong> de quelle note ?", questIdent: "Quel est l'intervalle ?", success: "✅ BRAVO !", error: "❌ RÉESSAYE", alert: "⚠️ Sélectionnez des intervalles !" },
+        de: { notes: ["C", ["C#", "Db"], "D", ["D#", "Eb"], "E", "F", ["F#", "Gb"], "G", ["G#", "Ab"], "A", ["A#", "Bb"], "H"], init: "Intervalle wählen ↓", questNote: "Finde die <strong>{int}</strong> von <strong>{root}</strong>", questRoot: "<strong>{target}</strong> ist die <strong>{int}</strong> welcher Note?", questIdent: "Was ist das Intervall?", success: "✅ RICHTIG!", error: "❌ VERSUCH ES NOCHMAL", alert: "⚠️ Bitte Intervalle wählen!" },
+        es: { notes: ["Do", ["Do#", "Reb"], "Re", ["Re#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], init: "Selecciona intervalos ↓", questNote: "Busca la <strong>{int}</strong> de <strong>{root}</strong>", questRoot: "¿<strong>{target}</strong> es la <strong>{int}</strong> de qué nota?", questIdent: "¿Cuál es el intervalo?", success: "✅ ¡CORRECTO!", error: "❌ INTÉNTALO DE NUEVO", alert: "⚠️ ¡Selecciona intervalos!" },
+        it: { notes: ["Do", ["Do#", "Reb"], "Re", ["Re#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], init: "Seleziona intervalli ↓", questNote: "Trova la <strong>{int}</strong> di <strong>{root}</strong>", questRoot: "<strong>{target}</strong> è la <strong>{int}</strong> di quale nota?", questIdent: "Qual è l'intervallo?", success: "✅ CORRETTO!", error: "❌ RIPROVA", alert: "⚠️ Seleziona intervalli!" }
+    };
+
+    let currentLang = 'en', currentMode = 0, effectiveMode = 0, selectedIntervals = [], lastPick = null, lastRoot = 0, previousQuestionKey = "", currentTargetIndex = -1, currentIntervalValue = -1;
+
+    // PROBABILITY UPDATE: 80% flats (note[1]), 20% sharps (note[0])
+    function getNoteName(index, lang) {
+        const note = i18n[lang].notes[index % 12];
+        if (Array.isArray(note)) {
+            return Math.random() < 0.8 ? note[1] : note[0];
+        }
+        return note;
+    }
+
+    function runAutoTest() {
+        let errors = 0, tests = 0;
+        ALL_INTERVALS_LIST.forEach(interval => {
+            [0, 5, 10].forEach(root => {
+                const target = root + interval.value;
+                if (target < 31) { tests++; if ((target - root) !== interval.value) errors++; }
+            });
+        });
+        const msg = (errors === 0) ? `DEBUG: ✅ STABLE (${tests} tests)` : `DEBUG: ❌ FAIL (${errors} err)`;
+        document.getElementById('feedback').innerText = msg;
+        document.getElementById('feedback').style.color = (errors === 0) ? "var(--success)" : "var(--error)";
+    }
+
+    function generatePiano() {
+        const pianoContainer = document.getElementById('piano');
+        pianoContainer.innerHTML = '';
+        for (let i = 0; i < 31; i++) {
+            const key = document.createElement('div');
+            const isBlack = BLACK_KEY_PATTERN.includes(i % 12);
+            key.className = `key ${isBlack ? 'black' : 'white'}`;
+            key.dataset.index = i;
+            key.addEventListener('mousedown', () => { if(effectiveMode !== 1) checkPianoInput(i, key); });
+            pianoContainer.appendChild(key);
+        }
+    }
+
+    function generateControls() {
+        const controls = document.getElementById('controls');
+        controls.innerHTML = '';
+        ALL_INTERVALS_LIST.forEach(interval => {
+            const btn = document.createElement('button');
+            btn.className = 'int-btn'; btn.innerText = interval.name;
+            btn.onclick = () => {
+                if (effectiveMode === 1 && currentIntervalValue !== -1) checkIntervalAnswer(interval.name, interval.value, btn);
+                else { btn.classList.toggle('selected'); updateSelection(); saveState(); }
+            };
+            controls.appendChild(btn);
+        });
+    }
+
+    function updateSelection() {
+        selectedIntervals = [];
+        document.querySelectorAll('.int-btn.selected').forEach(btn => {
+            selectedIntervals.push({ name: btn.innerText, value: ALL_INTERVALS[btn.innerText] });
+        });
+    }
+
+    function setMode(m, autoGo = true) {
+        currentMode = m;
+        document.querySelectorAll('.mode-btn').forEach(b => {
+            b.classList.remove('active', 'shuffle-active');
+            if (b.id === 'btnMode'+m) b.classList.add(m === 'shuffle' ? 'shuffle-active' : 'active');
+        });
+        resetDisplay(); saveState();
+        if (autoGo && selectedIntervals.length > 0) nextQuestion();
+        else document.getElementById('question').innerHTML = i18n[currentLang].init;
+    }
+
+    function nextQuestion() {
+        if (selectedIntervals.length === 0) {
+            document.getElementById('question').innerHTML = `<span style="color:var(--error)">${i18n[currentLang].alert}</span>`;
+            return;
+        }
+        resetDisplay();
+        effectiveMode = (currentMode === 'shuffle') ? (Math.floor(Math.random() * 3)) : currentMode;
+        let newRoot, newPick, questionKey;
+        do {
+            newPick = selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
+            newRoot = Math.floor(Math.random() * (30 - newPick.value));
+            questionKey = `${newRoot}-${newPick.value}-${effectiveMode}`;
+        } while (questionKey === previousQuestionKey && selectedIntervals.length > 1);
+        lastPick = newPick; lastRoot = newRoot; previousQuestionKey = questionKey;
+        const box = document.getElementById('question-box');
+        box.style.borderTopColor = (effectiveMode === 1) ? "var(--target-view)" : (effectiveMode === 2 ? "var(--root-color)" : "var(--highlight)");
+        if (effectiveMode === 0) { currentTargetIndex = lastRoot + lastPick.value; highlightKey(lastRoot, 'root-key'); }
+        else if (effectiveMode === 1) { currentIntervalValue = lastPick.value; highlightKey(lastRoot, 'root-key'); highlightKey(lastRoot + lastPick.value, 'target-view'); document.querySelectorAll('.int-btn.selected').forEach(b => b.classList.add('hide-selection')); }
+        else if (effectiveMode === 2) { currentTargetIndex = lastRoot; highlightKey(lastRoot + lastPick.value, 'target-view'); }
+        updateQuestionDisplay();
+    }
+
+    function highlightKey(index, className) {
+        const el = document.querySelector(`[data-index="${index}"]`);
+        if (el) el.classList.add(className);
+    }
+
+    function resetDisplay() {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('correct', 'wrong', 'root-key', 'target-view'));
+        document.querySelectorAll('.int-btn').forEach(b => b.classList.remove('hide-selection', 'answer-highlight', 'wrong'));
+        document.getElementById('feedback').innerText = ""; currentTargetIndex = -1; currentIntervalValue = -1;
+    }
+
+    function checkPianoInput(index, element) {
+        if (currentTargetIndex === -1) return;
+        if (index === currentTargetIndex) {
+            element.classList.add('correct'); document.getElementById('feedback').innerText = i18n[currentLang].success; document.getElementById('feedback').style.color = "var(--success)"; currentTargetIndex = -1; setTimeout(nextQuestion, 1500);
+        } else {
+            element.classList.add('wrong'); document.getElementById('feedback').innerText = i18n[currentLang].error; document.getElementById('feedback').style.color = "var(--error)";
+        }
+    }
+
+    function checkIntervalAnswer(name, value, btn) {
+        if (currentIntervalValue === -1) return;
+        if (value === currentIntervalValue) {
+            document.getElementById('feedback').innerText = i18n[currentLang].success + " (" + name + ")"; document.getElementById('feedback').style.color = "var(--success)";
+            highlightKey(lastRoot + currentIntervalValue, 'correct'); document.querySelectorAll('.int-btn').forEach(b => b.classList.remove('hide-selection')); btn.classList.add('answer-highlight'); currentIntervalValue = -1; setTimeout(nextQuestion, 1500);
+        } else {
+            document.getElementById('feedback').innerText = i18n[currentLang].error; document.getElementById('feedback').style.color = "var(--error)"; btn.classList.add('wrong'); setTimeout(() => btn.classList.remove('wrong'), 500);
+        }
+    }
+
+    function changeLanguage(lang) {
+        currentLang = lang; saveState();
+        if (lastPick) updateQuestionDisplay();
+        else document.getElementById('question').innerHTML = i18n[lang].init;
+    }
+
+    function updateQuestionDisplay() {
+        const t = i18n[currentLang];
+        if (effectiveMode === 1) document.getElementById('question').innerHTML = t.questIdent;
+        else if (effectiveMode === 0) {
+            const rootName = getNoteName(lastRoot, currentLang);
+            document.getElementById('question').innerHTML = t.questNote.replace('{int}', lastPick.name).replace('{root}', rootName);
+        } else if (effectiveMode === 2) {
+            const targetName = getNoteName(lastRoot + lastPick.value, currentLang);
+            document.getElementById('question').innerHTML = t.questRoot.replace('{int}', lastPick.name).replace('{target}', targetName);
+        }
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.int-btn.selected').forEach(btn => btn.classList.remove('selected'));
+        updateSelection(); resetDisplay(); lastPick = null; document.getElementById('question').innerText = i18n[currentLang].init; saveState();
+    }
+
+    function saveState() {
+        const state = { lang: currentLang, mode: currentMode, intervals: Array.from(document.querySelectorAll('.int-btn.selected')).map(b => b.innerText) };
+        localStorage.setItem('pianoHarmonyMasterState', JSON.stringify(state));
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem('pianoHarmonyMasterState');
+        if (!saved) return;
+        const state = JSON.parse(saved);
+        currentLang = state.lang; currentMode = state.mode;
+        document.getElementById('langSelect').value = currentLang;
+        generateControls();
+        document.querySelectorAll('.int-btn').forEach(btn => { if (state.intervals.includes(btn.innerText)) btn.classList.add('selected'); });
+        updateSelection(); setMode(currentMode, false); changeLanguage(currentLang);
+    }
+
+    function hardReset() { if (confirm("Reset everything?")) { localStorage.removeItem('pianoHarmonyMasterState'); location.reload(); } }
+    function handleResize() { const container = document.getElementById('app-container'); const scale = Math.min(window.innerWidth / 920, window.innerHeight / 680, 1); container.style.transform = `scale(${scale})`; }
+
+    window.onload = () => {
+        generatePiano();
+        generateControls();
+        window.addEventListener('resize', handleResize);
+        handleResize();
+        loadState();
+    };
+</script>
+</body>
+</html>
