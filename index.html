@@ -280,6 +280,12 @@
         window.addEventListener('resize', handleResize);
         handleResize();
         loadState();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log("PWA: Service Worker Registered"))
+            .catch(err => console.log("PWA: Register Failed", err));
+        }
     };
 </script>
 </body>
