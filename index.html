@@ -1,57 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!--
-      PROJECT : Piano Harmony Master - Stable Selection Reveal
-      VERSION : 1.3.3 - Color Fix & Pattern Restoration
-      SECRET : Ghost button hidden bottom-right of the piano.
-    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#3498db">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com">
-    <title>Piano Harmony Master - v1.3.3</title>
+    <title>Piano Harmony Master - v1.3.5</title>
     <style>
-        :root {
-            --white: #fff; --black: #2c3e50; --highlight: #3498db;
-            --error: #e74c3c; --success: #2ecc71; --root-color: #f1c40f;
-            --target-view: #9b59b6; --shuffle: #e67e22; --reset: #c0392b;
-            --key-w: 46px;
-        }
+        :root { --white: #fff; --black: #2c3e50; --highlight: #3498db; --error: #e74c3c; --success: #2ecc71; --root-color: #f1c40f; --target-view: #9b59b6; --shuffle: #e67e22; --reset: #c0392b; --key-w: 46px; }
         html, body { margin: 0; padding: 0; background: #ecf0f1; font-family: 'Segoe UI', sans-serif; min-height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #app-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 900px; padding: 15px; box-sizing: border-box; margin: auto; }
+        #app-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 900px; padding: 15px; box-sizing: border-box; margin: auto; transition: transform 0.2s; }
         #header-tools { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
-        #header-tools div:first-child { font-size: 1.2em; font-weight: bold; }
         .mode-selector { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
         .mode-btn { cursor: pointer; padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; background: #fff; font-weight: bold; }
         .mode-btn.active { background: var(--highlight) !important; color: white !important; }
         .mode-btn.shuffle-active { background: var(--shuffle) !important; color: white !important; }
+
+        /* NEW: Toggle Style */
+        .toggle-container { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold; background: #ddd; padding: 5px 10px; border-radius: 5px; cursor: pointer; user-select: none; }
+
         select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; font-size: 14px; }
         #piano-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; background: #333; padding: 25px 0; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 20px; }
         #piano { display: flex; width: max-content; margin: 0 auto; padding: 0 20px; }
         .key { cursor: pointer; border: 1px solid #bbb; position: relative; box-sizing: border-box; transition: background 0.1s; }
         .white { width: var(--key-w); height: 160px; background: var(--white); border-radius: 0 0 5px 5px; z-index: 1; }
         .black { width: calc(var(--key-w) * 0.6); height: 100px; background: var(--black); margin-left: calc(var(--key-w) * -0.3); margin-right: calc(var(--key-w) * -0.3); z-index: 2; border-radius: 0 0 4px 4px; border: none; }
-
         .correct { background-color: var(--success) !important; color: white !important; }
         .wrong { background-color: var(--error) !important; color: white !important; }
         .root-key { background-color: var(--root-color) !important; color: black !important; }
         .target-view { background-color: var(--target-view) !important; color: white !important; }
-
         #question-box { background: white; padding: 15px; border-radius: 10px; width: 100%; text-align: center; border-top: 5px solid var(--highlight); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; box-sizing: border-box; }
         #question { font-size: 1.3em; color: #2c3e50; font-weight: bold; min-height: 1.4em; }
         #feedback { font-weight: bold; height: 1.2em; font-size: 1.1em; margin-top: 8px; }
         #controls { display: grid; grid-template-columns: repeat(11, 1fr); gap: 6px; width: 100%; }
         .int-btn { padding: 12px 2px; border: none; border-radius: 5px; background: white; font-weight: bold; border-bottom: 3px solid #bdc3c7; font-size: 13px; cursor: pointer; }
         .int-btn.selected { background: var(--highlight) !important; color: white !important; }
+        .int-btn.hide-selection { opacity: 0.3; pointer-events: none; }
+        .int-btn.answer-highlight { background: var(--success) !important; color: white; }
         .btn-group { display: flex; gap: 12px; width: 100%; justify-content: center; margin-top: 10px; }
         .main-btn { flex: 1; max-width: 160px; padding: 14px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; font-size: 14px; }
         #action-btn { background: #2c3e50; }
         #clear-btn { background: #95a5a6; }
         #reset-btn { background: var(--reset); }
-        @media (max-width: 768px) { :root { --key-w: 40px; } #controls { grid-template-columns: repeat(4, 1fr); } #header-tools { justify-content: center; flex-direction: column; text-align: center; } #question { font-size: 1.1em; } }
-        #ghost-trigger { position: absolute; bottom: 5px; right: 5px; width: 30px; height: 30px; opacity: 0; z-index: 999; }
+        @media (max-width: 768px) { :root { --key-w: 40px; } #controls { grid-template-columns: repeat(4, 1fr); } #header-tools { justify-content: center; flex-direction: column; text-align: center; } }
     </style>
 </head>
 <body>
@@ -64,17 +53,22 @@
             <button id="btnMode1" class="mode-btn" onclick="setMode(1)">Interval</button>
             <button id="btnModeshuffle" class="mode-btn" onclick="setMode('shuffle')">🔀 Mix</button>
         </div>
-        <select id="langSelect" onchange="changeLanguage(this.value)">
-            <option value="de">🇩🇪 DE</option>
-            <option value="en" selected>🇬🇧 EN</option>
-            <option value="es">🇪🇸 ES</option>
-            <option value="fr">🇫🇷 FR</option>
-            <option value="it">🇮🇹 IT</option>
-        </select>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <label class="toggle-container">
+                <input type="checkbox" id="showNoteNames" checked onchange="updateQuestionDisplay()">
+                <span>ABC</span>
+            </label>
+            <select id="langSelect" onchange="changeLanguage(this.value)">
+                <option value="de">🇩🇪 DE</option>
+                <option value="en" selected>🇬🇧 EN</option>
+                <option value="es">🇪🇸 ES</option>
+                <option value="fr">🇫🇷 FR</option>
+                <option value="it">🇮🇹 IT</option>
+            </select>
+        </div>
     </div>
     <div id="piano-wrapper">
         <div id="piano"></div>
-        <div id="ghost-trigger" onclick="runAutoTest()"></div>
     </div>
     <div id="question-box"><div id="question"></div><div id="feedback"></div></div>
     <div id="controls"></div>
@@ -84,10 +78,9 @@
         <button id="reset-btn" class="main-btn" onclick="hardReset()">RESET ALL</button>
     </div>
 </div>
-<script>
-    // FIXED PATTERN
-    const BLACK_KEY_PATTERN = [1, 3, 6, 8, 10];
 
+<script>
+    const BLACK_KEY_PATTERN = [1, 3, 6, 8, 10];
     const ALL_INTERVALS_LIST = [
         { name: "b2", value: 1 }, { name: "2", value: 2 }, { name: "#2", value: 3 }, { name: "b3", value: 3 },
         { name: "3", value: 4 }, { name: "4", value: 5 }, { name: "#4", value: 6 }, { name: "b5", value: 6 },
@@ -97,28 +90,23 @@
         { name: "b13", value: 20 }, { name: "13", value: 21 }
     ];
     const ALL_INTERVALS = {}; ALL_INTERVALS_LIST.forEach(i => ALL_INTERVALS[i.name] = i.value);
+
     const i18n = {
-        en: { notes: ["C", ["C#", "Db"], "D", ["D#", "Eb"], "E", "F", ["F#", "Gb"], "G", ["G#", "Ab"], "A", ["A#", "Bb"], "B"], init: "Select intervals ↓", questNote: "Find the <strong>{int}</strong> of <strong>{root}</strong>", questRoot: "<strong>{target}</strong> is the <strong>{int}</strong> of which note?", questIdent: "What is the interval?", success: "✅ CORRECT!", error: "❌ TRY AGAIN", alert: "⚠️ Please select intervals!" },
-        fr: { notes: ["Do", ["Do#", "Réb"], "Ré", ["Ré#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], init: "Sélectionnez vos intervalles ↓", questNote: "Trouvez la <strong>{int}</strong> de <strong>{root}</strong>", questRoot: "<strong>{target}</strong> est la <strong>{int}</strong> de quelle note ?", questIdent: "Quel est l'intervalle ?", success: "✅ BRAVO !", error: "❌ RÉESSAYE", alert: "⚠️ Sélectionnez des intervalles !" },
-        de: { notes: ["C", ["C#", "Db"], "D", ["D#", "Eb"], "E", "F", ["F#", "Gb"], "G", ["G#", "Ab"], "A", ["A#", "Bb"], "H"], init: "Intervalle wählen ↓", questNote: "Finde die <strong>{int}</strong> von <strong>{root}</strong>", questRoot: "<strong>{target}</strong> ist die <strong>{int}</strong> welcher Note?", questIdent: "Was ist das Intervall?", success: "✅ RICHTIG!", error: "❌ VERSUCH ES NOCHMAL", alert: "⚠️ Bitte Intervalle wählen!" },
-        es: { notes: ["Do", ["Do#", "Reb"], "Re", ["Re#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], init: "Selecciona intervalos ↓", questNote: "Busca la <strong>{int}</strong> de <strong>{root}</strong>", questRoot: "¿<strong>{target}</strong> es la <strong>{int}</strong> de qué nota?", questIdent: "¿Cuál es el intervalo?", success: "✅ ¡CORRECTO!", error: "❌ INTÉNTALO DE NUEVO", alert: "⚠️ ¡Selecciona intervalos!" },
-        it: { notes: ["Do", ["Do#", "Reb"], "Re", ["Re#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], init: "Seleziona intervalli ↓", questNote: "Trova la <strong>{int}</strong> di <strong>{root}</strong>", questRoot: "<strong>{target}</strong> è la <strong>{int}</strong> di quale nota?", questIdent: "Qual è l'intervallo?", success: "✅ CORRETTO!", error: "❌ RIPROVA", alert: "⚠️ Seleziona intervalli!" }
+        en: { notes: ["C", ["C#", "Db"], "D", ["D#", "Eb"], "E", "F", ["F#", "Gb"], "G", ["G#", "Ab"], "A", ["A#", "Bb"], "B"], anon: "this note", init: "Select intervals ↓", questNote: "Find the <strong>{int}</strong> of <strong>{root}</strong>", questRoot: "This note is the <strong>{int}</strong> of which note?", questIdent: "What is the interval?", success: "✅ CORRECT!", error: "❌ TRY AGAIN", alert: "⚠️ Please select intervals!" },
+        fr: { notes: ["Do", ["Do#", "Réb"], "Ré", ["Ré#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], anon: "cette note", init: "Sélectionnez vos intervalles ↓", questNote: "Trouvez la <strong>{int}</strong> de <strong>{root}</strong>", questRoot: "Cette note est la <strong>{int}</strong> de quelle note ?", questIdent: "Quel est l'intervalle ?", success: "✅ BRAVO !", error: "❌ RÉESSAYE", alert: "⚠️ Sélectionnez des intervalles !" },
+        de: { notes: ["C", ["C#", "Db"], "D", ["D#", "Eb"], "E", "F", ["F#", "Gb"], "G", ["G#", "Ab"], "A", ["A#", "Bb"], "H"], anon: "diesem Ton", init: "Intervalle wählen ↓", questNote: "Finde die <strong>{int}</strong> von <strong>{root}</strong>", questRoot: "Dieser Ton ist die <strong>{int}</strong> welcher Note?", questIdent: "Was ist das Intervall?", success: "✅ RICHTIG!", error: "❌ VERSUCH ES NOCHMAL", alert: "⚠️ Bitte Intervalle wählen!" },
+        es: { notes: ["Do", ["Do#", "Reb"], "Re", ["Re#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], anon: "esta nota", init: "Selecciona intervalos ↓", questNote: "Busca la <strong>{int}</strong> de <strong>{root}</strong>", questRoot: "Esta nota es la <strong>{int}</strong> ¿de qué nota?", questIdent: "¿Cuál es el intervalo?", success: "✅ ¡CORRECTO!", error: "❌ INTÉNTALO DE NUEVO", alert: "⚠️ ¡Selecciona intervalos!" },
+        it: { notes: ["Do", ["Do#", "Reb"], "Re", ["Re#", "Mib"], "Mi", "Fa", ["Fa#", "Solb"], "Sol", ["Sol#", "Lab"], "La", ["La#", "Sib"], "Si"], anon: "questa nota", init: "Seleziona intervalli ↓", questNote: "Trova la <strong>{int}</strong> di <strong>{root}</strong>", questRoot: "Questa nota è la <strong>{int}</strong> di quale nota?", questIdent: "Qual è l'intervallo?", success: "✅ CORRETTO!", error: "❌ RIPROVA", alert: "⚠️ Seleziona intervalli!" }
     };
+
     let currentLang = 'en', currentMode = 0, effectiveMode = 0, selectedIntervals = [], lastPick = null, lastRoot = 0, previousQuestionKey = "", currentTargetIndex = -1, currentIntervalValue = -1;
+
     function getNoteName(index, lang) {
+        if (!document.getElementById('showNoteNames').checked) return i18n[lang].anon;
         const note = i18n[lang].notes[index % 12];
-        return Array.isArray(note) ? (Math.random() < 0.8 ? note : note) : note;
+        return Array.isArray(note) ? (Math.random() < 0.8 ? note[1] : note[0]) : note;
     }
-    function runAutoTest() {
-        let errors = 0, tests = 0;
-        ALL_INTERVALS_LIST.forEach(interval => {
-           [0, 5].forEach(root => {
-                const target = root + interval.value;
-                if (target < 31) { tests++; if ((target - root) !== interval.value) errors++; }
-            });
-        });
-        alert("📜 v1.3.3 Status: " + (errors === 0 ? "✅ STABLE" : "❌ ERRORS"));
-    }
+
     function generatePiano() {
         const p = document.getElementById('piano'); p.innerHTML = '';
         for (let i = 0; i < 31; i++) {
@@ -128,6 +116,7 @@
             p.appendChild(k);
         }
     }
+
     function generateControls() {
         const c = document.getElementById('controls'); c.innerHTML = '';
         ALL_INTERVALS_LIST.forEach(i => {
@@ -136,36 +125,136 @@
             c.appendChild(b);
         });
     }
+
     function updateSelection() { selectedIntervals = []; document.querySelectorAll('.int-btn.selected').forEach(b => { selectedIntervals.push({ name: b.innerText, value: ALL_INTERVALS[b.innerText] }); }); }
+
     function setMode(m, go = true) {
         currentMode = m; document.querySelectorAll('.mode-btn').forEach(b => { b.classList.remove('active', 'shuffle-active'); if (b.id === 'btnMode'+m) b.classList.add(m === 'shuffle' ? 'shuffle-active' : 'active'); });
         resetDisplay(); saveState(); if (go && selectedIntervals.length > 0) nextQuestion(); else document.getElementById('question').innerHTML = i18n[currentLang].init;
     }
+
     function nextQuestion() {
         if (selectedIntervals.length === 0) { document.getElementById('question').innerHTML = `<span style="color:var(--error)">${i18n[currentLang].alert}</span>`; return; }
-        resetDisplay(); effectiveMode = (currentMode === 'shuffle') ? (Math.floor(Math.random() * 3)) : currentMode;
-        let nr, np, qk; do { np = selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)]; nr = Math.floor(Math.random() * (30 - np.value)); qk = `${nr}-${np.value}-${effectiveMode}`; } while (qk === previousQuestionKey && selectedIntervals.length > 1);
+        resetDisplay();
+        effectiveMode = (currentMode === 'shuffle') ? (Math.floor(Math.random() * 3)) : currentMode;
+        let nr, np, qk;
+        do {
+            np = selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
+            nr = Math.floor(Math.random() * (30 - np.value));
+            qk = `${nr}-${np.value}-${effectiveMode}`;
+        } while (qk === previousQuestionKey && selectedIntervals.length > 1);
+
         lastPick = np; lastRoot = nr; previousQuestionKey = qk;
-        const b = document.getElementById('question-box'); b.style.borderTopColor = (effectiveMode === 1) ? "var(--target-view)" : (effectiveMode === 2 ? "var(--root-color)" : "var(--highlight)");
+        const b = document.getElementById('question-box');
+        b.style.borderTopColor = (effectiveMode === 1) ? "var(--target-view)" : (effectiveMode === 2 ? "var(--root-color)" : "var(--highlight)");
+
         if (effectiveMode === 0) { currentTargetIndex = nr + np.value; highlightKey(nr, 'root-key'); }
         else if (effectiveMode === 1) { currentIntervalValue = np.value; highlightKey(nr, 'root-key'); highlightKey(nr + np.value, 'target-view'); document.querySelectorAll('.int-btn.selected').forEach(x => x.classList.add('hide-selection')); }
         else if (effectiveMode === 2) { currentTargetIndex = nr; highlightKey(nr + np.value, 'target-view'); }
         updateQuestionDisplay();
     }
+
     function highlightKey(i, c) { const e = document.querySelector(`[data-index="${i}"]`); if (e) e.classList.add(c); }
-    function resetDisplay() { document.querySelectorAll('.key').forEach(k => k.classList.remove('correct', 'wrong', 'root-key', 'target-view')); document.querySelectorAll('.int-btn').forEach(b => b.classList.remove('hide-selection', 'answer-highlight', 'wrong')); document.getElementById('feedback').innerText = ""; currentTargetIndex = -1; currentIntervalValue = -1; }
-    function checkPianoInput(i, e) { if (currentTargetIndex === -1) return; if (i === currentTargetIndex) { e.classList.add('correct'); document.getElementById('feedback').innerText = i18n[currentLang].success; document.getElementById('feedback').style.color = "var(--success)"; currentTargetIndex = -1; setTimeout(nextQuestion, 1500); } else { e.classList.add('wrong'); document.getElementById('feedback').innerText = i18n[currentLang].error; document.getElementById('feedback').style.color = "var(--error)"; setTimeout(() => e.classList.remove('wrong'), 500); } }
-    function checkIntervalAnswer(n, v, b) { if (currentIntervalValue === -1) return; if (v === currentIntervalValue) { document.getElementById('feedback').innerText = i18n[currentLang].success + " (" + n + ")"; document.getElementById('feedback').style.color = "var(--success)"; highlightKey(lastRoot + currentIntervalValue, 'correct'); document.querySelectorAll('.int-btn').forEach(x => x.classList.remove('hide-selection')); b.classList.add('answer-highlight'); currentIntervalValue = -1; setTimeout(nextQuestion, 1500); } else { document.getElementById('feedback').innerText = i18n[currentLang].error; document.getElementById('feedback').style.color = "var(--error)"; b.classList.add('wrong'); setTimeout(() => b.classList.remove('wrong'), 500); } }
+
+    function resetDisplay() {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('correct', 'wrong', 'root-key', 'target-view'));
+        document.querySelectorAll('.int-btn').forEach(b => b.classList.remove('hide-selection', 'answer-highlight', 'wrong'));
+        document.getElementById('feedback').innerText = "";
+        currentTargetIndex = -1; currentIntervalValue = -1;
+    }
+
+    function checkPianoInput(i, e) {
+        if (currentTargetIndex === -1) return;
+        if (i === currentTargetIndex) {
+            e.classList.add('correct');
+            document.getElementById('feedback').innerText = i18n[currentLang].success;
+            document.getElementById('feedback').style.color = "var(--success)";
+            currentTargetIndex = -1;
+            setTimeout(nextQuestion, 1500);
+        } else {
+            e.classList.add('wrong');
+            document.getElementById('feedback').innerText = i18n[currentLang].error;
+            document.getElementById('feedback').style.color = "var(--error)";
+            setTimeout(() => e.classList.remove('wrong'), 500);
+        }
+    }
+
+    function checkIntervalAnswer(n, v, b) {
+        if (currentIntervalValue === -1) return;
+        if (v === currentIntervalValue) {
+            document.getElementById('feedback').innerText = i18n[currentLang].success + " (" + n + ")";
+            document.getElementById('feedback').style.color = "var(--success)";
+            highlightKey(lastRoot + currentIntervalValue, 'correct');
+            document.querySelectorAll('.int-btn').forEach(x => x.classList.remove('hide-selection'));
+            b.classList.add('answer-highlight');
+            currentIntervalValue = -1;
+            setTimeout(nextQuestion, 1500);
+        } else {
+            document.getElementById('feedback').innerText = i18n[currentLang].error;
+            document.getElementById('feedback').style.color = "var(--error)";
+            b.classList.add('wrong');
+            setTimeout(() => b.classList.remove('wrong'), 500);
+        }
+    }
+
     function changeLanguage(l) { currentLang = l; saveState(); if (lastPick) updateQuestionDisplay(); else document.getElementById('question').innerHTML = i18n[l].init; }
-    function updateQuestionDisplay() { const t = i18n[currentLang]; if (effectiveMode === 1) document.getElementById('question').innerHTML = t.questIdent; else if (effectiveMode === 0) document.getElementById('question').innerHTML = t.questNote.replace('{int}', lastPick.name).replace('{root}', getNoteName(lastRoot, currentLang)); else if (effectiveMode === 2) document.getElementById('question').innerHTML = t.questRoot.replace('{int}', lastPick.name).replace('{target}', getNoteName(lastRoot + lastPick.value, currentLang)); }
-    function clearSelection() { document.querySelectorAll('.int-btn.selected').forEach(b => b.classList.remove('selected')); updateSelection(); resetDisplay(); lastPick = null; document.getElementById('question').innerText = i18n[currentLang].init; saveState(); }
-    function saveState() { const s = { lang: currentLang, mode: currentMode, intervals: Array.from(document.querySelectorAll('.int-btn.selected')).map(b => b.innerText) }; localStorage.setItem('pianoHarmonyMasterState', JSON.stringify(s)); }
-    function loadState() { const s = JSON.parse(localStorage.getItem('pianoHarmonyMasterState')); if (!s) return; currentLang = s.lang || 'en'; currentMode = s.mode; document.getElementById('langSelect').value = currentLang; generateControls(); document.querySelectorAll('.int-btn').forEach(b => { if (s.intervals.includes(b.innerText)) b.classList.add('selected'); }); updateSelection(); setMode(currentMode, false); changeLanguage(currentLang); }
+
+    function updateQuestionDisplay() {
+        if (!lastPick) return;
+        const t = i18n[currentLang];
+        if (effectiveMode === 1) {
+            document.getElementById('question').innerHTML = t.questIdent;
+        } else if (effectiveMode === 0) {
+            document.getElementById('question').innerHTML = t.questNote.replace('{int}', lastPick.name).replace('{root}', getNoteName(lastRoot, currentLang));
+        } else if (effectiveMode === 2) {
+            document.getElementById('question').innerHTML = t.questRoot.replace('{int}', lastPick.name);
+        }
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.int-btn.selected').forEach(b => b.classList.remove('selected'));
+        updateSelection(); resetDisplay(); lastPick = null;
+        document.getElementById('question').innerHTML = i18n[currentLang].init;
+        saveState();
+    }
+
+    function saveState() {
+        const s = {
+            lang: currentLang,
+            mode: currentMode,
+            intervals: Array.from(document.querySelectorAll('.int-btn.selected')).map(b => b.innerText),
+            namesOn: document.getElementById('showNoteNames').checked
+        };
+        localStorage.setItem('pianoHarmonyMasterState', JSON.stringify(s));
+    }
+
+    function loadState() {
+        const s = JSON.parse(localStorage.getItem('pianoHarmonyMasterState'));
+        if (!s) return;
+        currentLang = s.lang || 'en';
+        currentMode = s.mode;
+        document.getElementById('langSelect').value = currentLang;
+        if (s.namesOn !== undefined) document.getElementById('showNoteNames').checked = s.namesOn;
+        generateControls();
+        document.querySelectorAll('.int-btn').forEach(b => { if (s.intervals.includes(b.innerText)) b.classList.add('selected'); });
+        updateSelection();
+        setMode(currentMode, false);
+        changeLanguage(currentLang);
+    }
+
     function hardReset() { if (confirm("Reset everything?")) { localStorage.removeItem('pianoHarmonyMasterState'); location.reload(); } }
-    function handleResize() { const c = document.getElementById('app-container'); const s = Math.min(window.innerWidth / 920, window.innerHeight / 680, 1); c.style.transform = `scale(${s})`; }
+
+    function handleResize() {
+        const c = document.getElementById('app-container');
+        const s = Math.min(window.innerWidth / 920, window.innerHeight / 680, 1);
+        c.style.transform = `scale(${s})`;
+    }
+
     window.onload = () => {
         generatePiano(); generateControls(); window.addEventListener('resize', handleResize); handleResize(); loadState();
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').then(() => console.log("PWA Ready")).catch(err => console.log("PWA Error", err));
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Error", err));
+        }
     };
 </script>
 </body>
